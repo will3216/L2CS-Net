@@ -86,8 +86,8 @@ class Pipeline:
                     landmarks.append(landmark)
                     scores.append(score)
 
-                # Predict gaze
                 if face_imgs:
+                    # Predict gaze
                     pitch, yaw = self.predict_gaze(np.stack(face_imgs))
                 else:
                     pitch = np.empty((0,1))

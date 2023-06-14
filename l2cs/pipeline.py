@@ -105,9 +105,9 @@ class Pipeline:
         results = GazeResultContainer(
             pitch=pitch,
             yaw=yaw,
-            bboxes=np.stack(bboxes),
-            landmarks=np.stack(landmarks),
-            scores=np.stack(scores)
+            bboxes=bboxes ? np.stack(bboxes) : np.empty((0,1)),
+            landmarks=landmarks ? np.stack(landmarks) : np.empty((0,1)),
+            scores=scores ?np.stack(scores) : np.empty((0,1))
         )
 
         return results

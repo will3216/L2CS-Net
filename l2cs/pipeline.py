@@ -15,10 +15,10 @@ from .results import GazeResultContainer
 class Pipeline:
 
     def __init__(
-        self, 
-        weights: pathlib.Path, 
+        self,
+        weights: pathlib.Path,
         arch: str,
-        device: str = 'cpu', 
+        device: str = 'cpu',
         include_detector:bool = True,
         confidence_threshold:float = 0.5
         ):
@@ -58,7 +58,7 @@ class Pipeline:
         if self.include_detector:
             faces = self.detector(frame)
 
-            if faces is not None: 
+            if faces is not None:
                 for box, landmark, score in faces:
 
                     # Apply threshold
@@ -74,7 +74,7 @@ class Pipeline:
                         y_min = 0
                     x_max=int(box[2])
                     y_max=int(box[3])
-                    
+
                     # Crop image
                     img = frame[y_min:y_max, x_min:x_max]
                     img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
@@ -87,7 +87,11 @@ class Pipeline:
                     scores.append(score)
 
                 # Predict gaze
-                pitch, yaw = self.predict_gaze(np.stack(face_imgs))
+                if face_imgs:
+                    pitch, yaw = self.predict_gaze(np.stack(face_imgs))
+                else:
+                    pitch = np.empty((0,1))
+                    yaw = np.empty((0,1))
 
             else:
 
@@ -109,7 +113,7 @@ class Pipeline:
         return results
 
     def predict_gaze(self, frame: Union[np.ndarray, torch.Tensor]):
-        
+
         # Prepare input
         if isinstance(frame, np.ndarray):
             img = prep_input_numpy(frame, self.device)
@@ -117,16 +121,16 @@ class Pipeline:
             img = frame
         else:
             raise RuntimeError("Invalid dtype for input")
-    
-        # Predict 
+
+        # Predict
         gaze_pitch, gaze_yaw = self.model(img)
         pitch_predicted = self.softmax(gaze_pitch)
         yaw_predicted = self.softmax(gaze_yaw)
-        
+
         # Get continuous predictions in degrees.
         pitch_predicted = torch.sum(pitch_predicted.data * self.idx_tensor, dim=1) * 4 - 180
         yaw_predicted = torch.sum(yaw_predicted.data * self.idx_tensor, dim=1) * 4 - 180
-        
+
         pitch_predicted= pitch_predicted.cpu().detach().numpy()* np.pi/180.0
         yaw_predicted= yaw_predicted.cpu().detach().numpy()* np.pi/180.0
 

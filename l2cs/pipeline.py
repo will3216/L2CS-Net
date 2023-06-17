@@ -47,13 +47,14 @@ class Pipeline:
             self.idx_tensor = [idx for idx in range(90)]
             self.idx_tensor = torch.FloatTensor(self.idx_tensor).to(self.device)
 
-    def step(self, frame: np.ndarray) -> GazeResultContainer:
-
+    def step(self, frame: np.ndarray, override_confidence_threshold=None) -> GazeResultContainer:
         # Creating containers
         face_imgs = []
         bboxes = []
         landmarks = []
         scores = []
+
+        confidence_threshold = override_confidence_threshold || self.confidence_threshold
 
         if self.include_detector:
             faces = self.detector(frame)
@@ -62,7 +63,7 @@ class Pipeline:
                 for box, landmark, score in faces:
 
                     # Apply threshold
-                    if score < self.confidence_threshold:
+                    if score < confidence_threshold:
                         continue
 
                     # Extract safe min and max of x,y

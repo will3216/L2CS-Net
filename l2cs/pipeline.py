@@ -54,7 +54,7 @@ class Pipeline:
         landmarks = []
         scores = []
 
-        confidence_threshold = override_confidence_threshold || self.confidence_threshold
+        confidence_threshold = override_confidence_threshold or self.confidence_threshold
 
         if self.include_detector:
             faces = self.detector(frame)
